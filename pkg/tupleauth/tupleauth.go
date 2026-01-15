@@ -2,7 +2,6 @@
 package tupleauth
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -12,12 +11,6 @@ const (
 	DelimiterObjectRelation  = "#"
 	DelimiterRelationUser    = "@"
 	DelimiterNamespaceObject = ":"
-)
-
-var (
-	ErrWriteToDisk     = errors.New("failed writting to disk")
-	ErrRestoreFromDisk = errors.New("failed restoring from disk")
-	ErrRestoreEmpty    = errors.New("restore was empty")
 )
 
 type Object struct {
