@@ -3,6 +3,7 @@ package tupleauth
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -11,7 +12,6 @@ const (
 	DelimiterObjectRelation  = "#"
 	DelimiterRelationUser    = "@"
 	DelimiterNamespaceObject = ":"
-	DelimiterUserset         = "#"
 )
 
 var (
@@ -22,73 +22,84 @@ var (
 
 type Object struct {
 	Namespace string
-	ObjectID  string
+	ID        string
 }
 
-func (r *Object) IsZero() bool {
-	return len(r.Namespace)+len(r.ObjectID) == 0
+func (obj *Object) IsZero() bool {
+	return len(obj.Namespace)+len(obj.ID) == 0
 }
 
-func (r *Object) String() string {
-	if len(r.ObjectID) == 0 {
+func (obj *Object) String() string {
+	if len(obj.ID) == 0 {
 		return ""
 	}
-	if len(r.Namespace) == 0 {
-		return r.ObjectID
+	if len(obj.Namespace) == 0 {
+		return obj.ID
 	}
 	return strings.Join(
 		[]string{
-			r.Namespace, DelimiterNamespaceObject,
-			r.ObjectID,
+			obj.Namespace, DelimiterNamespaceObject,
+			obj.ID,
 		}, "")
 }
 
-type UserSet struct {
-	UserID string
-
-	// below are ignored if UserID has len
+type ObjectRelation struct {
 	Object   Object
 	Relation string
 }
 
-func (us *UserSet) IsZero() bool {
-	return len(us.UserID) == 0 && us.Object.IsZero()
+func (rel *ObjectRelation) IsZero() bool {
+	return len(rel.Relation) == 0 || rel.Object.IsZero()
 }
 
-func (us *UserSet) String() string {
-	if len(us.UserID) > 0 {
-		return us.UserID
-	}
-	if len(us.Relation) == 0 {
+func (rel *ObjectRelation) String() string {
+	if len(rel.Relation) == 0 {
 		return ""
 	}
-	objStr := us.Object.String()
+	objStr := rel.Object.String()
 	if len(objStr) == 0 {
 		return ""
 	}
 	return strings.Join(
 		[]string{
-			objStr, DelimiterUserset,
-			us.Relation,
+			objStr, DelimiterObjectRelation,
+			rel.Relation,
 		}, "")
+}
+
+type UserOrUserSet struct {
+	UserID int
+
+	// below unused if UserID > 0
+	UserSet ObjectRelation
+}
+
+func (usr *UserOrUserSet) IsZero() bool {
+	return usr.UserID == 0 && usr.UserSet.IsZero()
+}
+
+func (usr *UserOrUserSet) String() string {
+	if usr.UserID > 0 {
+		return strconv.Itoa(usr.UserID)
+	}
+	return usr.UserSet.String()
 }
 
 type Record struct {
 	Iat time.Time
-	Obj Object
-	Rel string
-	Usr UserSet
+
+	Target ObjectRelation
+	Scope  UserOrUserSet
 }
 
-func (r *Record) IsZero() bool {
-	return r.Iat.IsZero() || r.Obj.IsZero() || len(r.Rel) == 0 || r.Usr.IsZero()
+func (rec *Record) IsZero() bool {
+	return rec.Iat.IsZero() || rec.Target.IsZero() || rec.Scope.IsZero()
 }
 
-func (r *Record) String() string {
+func (rec *Record) String() string {
 	return strings.Join(
 		[]string{
-			r.Obj.String(), DelimiterObjectRelation,
-			r.Rel, DelimiterRelationUser,
-			r.Usr.String(),
+			rec.Target.String(), DelimiterRelationUser,
+			rec.Scope.String(),
 		}, "")
 }

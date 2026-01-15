@@ -1,21 +1,25 @@
 package tupleauth
 
 import (
+	"strconv"
 	"strings"
 	"time"
 )
 
-func ParseUserSet(s string) *UserSet {
-	before, after, found := strings.Cut(s, DelimiterUserset)
+func ParseUserSet(s string) *UserOrUserSet {
+	before, after, found := strings.Cut(s, DelimiterObjectRelation)
 	if !found {
-		return &UserSet{
-			UserID: before,
+		n, _ := strconv.Atoi(before)
+		return &UserOrUserSet{
+			UserID: n,
 		}
 	}
 
-	return &UserSet{
-		Relation: after,
-		Object:   *ParseObject(before),
+	return &UserOrUserSet{
+		UserSet: ObjectRelation{
+			Object:   *ParseObject(before),
+			Relation: after,
+		},
 	}
 }
 
@@ -23,12 +27,12 @@ func ParseObject(s string) *Object {
 	before, after, found := strings.Cut(s, DelimiterNamespaceObject)
 	if !found {
 		return &Object{
-			ObjectID: before,
+			ID: before,
 		}
 	}
 	return &Object{
 		Namespace: before,
-		ObjectID:  after,
+		ID:        after,
 	}
 }
 
@@ -47,9 +51,11 @@ func Parse(s string) []Record {
 		}
 		r := Record{
 			Iat: time.Now(),
-			Obj: *ParseObject(object),
-			Rel: relation,
-			Usr: *ParseUserSet(after),
+			Target: ObjectRelation{
+				Object:   *ParseObject(object),
+				Relation: relation,
+			},
+			Scope: *ParseUserSet(after),
 		}
 		if r.IsZero() {
 			continue

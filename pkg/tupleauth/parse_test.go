@@ -7,15 +7,16 @@ import (
 
 func TestParseOkay(t *testing.T) {
 	s := `
-	family#member@john
+	family#member@1
 	family#member@grandparents#member
 
-	grandparents#member@linda
-	grandparents#member@larry
+	grandparents#member@2
+	grandparents#member@3
 
 	cats:pictures#read@family#member
-	cats:pictures#write@john
+	cats:pictures#write@1
 	`
+
 	records := Parse(s)
 	if len(records) != 6 {
 		t.Fatal("records len not as expected")
@@ -23,29 +24,35 @@ func TestParseOkay(t *testing.T) {
 
 	var (
 		// users
-		john  = UserSet{UserID: "john"}
-		larry = UserSet{UserID: "larry"}
-		linda = UserSet{UserID: "linda"}
+		user1 = UserOrUserSet{UserID: 1}
+		user2 = UserOrUserSet{UserID: 2}
+		user3 = UserOrUserSet{UserID: 3}
 
 		// objects
-		family       = Object{ObjectID: "family"}
-		grandparents = Object{ObjectID: "grandparents"}
-		catPhotos    = Object{Namespace: "cats", ObjectID: "pictures"}
+		family      = Object{ID: "family"}
+		grandparent = Object{ID: "grandparents"}
+		catPhotos   = Object{Namespace: "cats", ID: "pictures"}
 
-		// user set
-		familyMember   = UserSet{Object: family, Relation: "member"}
-		grandparentRef = UserSet{Object: grandparents, Relation: "member"}
+		// user sets
+		familyMember      = ObjectRelation{Object: family, Relation: "member"}
+		grandparentMember = ObjectRelation{Object: grandparent, Relation: "member"}
 	)
 
 	expected := []Record{
-		{Obj: family, Rel: "member", Usr: john},
-		{Obj: family, Rel: "member", Usr: grandparentRef},
+		{Target: familyMember, Scope: user1},
+		{Target: familyMember, Scope: UserOrUserSet{UserSet: grandparentMember}},
 
-		{Obj: grandparents, Rel: "member", Usr: linda},
-		{Obj: grandparents, Rel: "member", Usr: larry},
+		{Target: grandparentMember, Scope: user2},
+		{Target: grandparentMember, Scope: user3},
 
-		{Obj: catPhotos, Rel: "read", Usr: familyMember},
-		{Obj: catPhotos, Rel: "write", Usr: john},
+		{
+			Target: ObjectRelation{Object: catPhotos, Relation: "read"},
+			Scope:  UserOrUserSet{UserSet: familyMember},
+		},
+		{
+			Target: ObjectRelation{Object: catPhotos, Relation: "write"},
+			Scope:  user1,
+		},
 	}
 
 	for i, expect := range expected {
