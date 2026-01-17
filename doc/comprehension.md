@@ -28,6 +28,8 @@ a tuple
 
 ## zookie
 
+the lower bound for a snapshot
+
 zookie is an opaque byte sequence encoding a globally meaningful timestamp
 
 - bookmarks a requests perception of world at request
@@ -52,6 +54,7 @@ may be a b64 encoding of
 clients can provide zookies to ensure a minimum snapshot timestamp for request evaluation. When a zookie is not provided, the server uses a default staleness 
 
 ### server default staleness
+
 
 - chosen to ensure that all transactions are evaluated at a timestamp that is as recent as possible without impacting latency
 - (performance optimization) strategy to calculate more accurate default over time

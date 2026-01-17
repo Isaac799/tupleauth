@@ -1,0 +1,72 @@
+@startuml
+
+title
+lifetime of a zookie
+end title
+
+User -> App : doc_id#view
+
+App -> Authn : login
+Authn -> App : user_id
+
+note over App, Authn
+authentication outside
+scope of my concern,
+assume user has id and
+is authenticated
+end note
+
+App -> Engine : CHECK\ntuple
+
+note over App, Engine
+example tuple
+doc_id#view@user_id
+end note
+
+Engine -> Database : tuple and a \ndefault staleness \nzookie
+
+note over Database
+zookie identify
+stale node in db
+cluster
+
+block or defer
+to cluster leader
+end note
+
+note over Engine, Database
+fan out, routing
+via tuple shard
+end note
+
+Database -> Engine : graph at least \nas fresh as zookie
+
+note over Engine
+def graph
+
+root = doc_id
+edge = view
+leaf = user_id(s)
+end note
+
+alt pass = user_id is leaf
+  Engine -> App : allow
+
+  note over User, App
+  as of zookie user_id
+  can view doc_id
+  end note
+
+  App -> User : content with zookie
+
+else fail
+  Engine -> App : deny
+  App -> User : unauthorized with zookie
+end alt
+
+note over User, App
+zookie included in
+subsequent requests
+end note
+
+@enduml
