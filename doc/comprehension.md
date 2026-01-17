@@ -8,7 +8,8 @@ the engine
   - graphs created on the fly, following relationships of shards
   - stateless
 - designed for traversal (not just search)
-  - edges always either a user (deadend) or a userset
+  - leaf always either a user (deadend) or a userset
+  - edges is relation
 
 a tuple
 
@@ -28,7 +29,11 @@ a tuple
 
 ## zookie
 
-the lower bound for a snapshot
+- the lower bound for a read snapshot
+- the upper bound for config usage
+- on write get latest zookie from the write
+- on read/check get either same or default stale (whatever used)
+- no zookie = default
 
 zookie is an opaque byte sequence encoding a globally meaningful timestamp
 
@@ -86,7 +91,7 @@ look up w/ zookie
 
 ### write
 
-read modify write (rmw)
+read modify write (rmw) at database level
 
 1. Read all relation tuples of an object
 

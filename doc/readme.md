@@ -21,3 +21,14 @@ Explains
 [plant uml](./uml/zookie_lifetime.plantuml) for the diagram
 
 ![acl usage diagram](./uml/zookie_lifetime.png)
+
+### Architecture
+
+Outlines
+- The components of a system
+- (generally) what each component is responsible for
+- how the engine is distinct from the database
+
+[plant uml](./uml/architecture.plantuml) for the diagram
+
+![architecture component diagram](./uml/architecture.png)

@@ -39,7 +39,7 @@ fan out, routing
 via tuple shard
 end note
 
-Database -> Engine : graph at least \nas fresh as zookie
+Database -> Engine : data at least \nas fresh as zookie
 
 note over Engine
 def graph

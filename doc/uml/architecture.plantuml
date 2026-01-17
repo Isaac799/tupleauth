@@ -1,0 +1,100 @@
+@startuml
+
+title
+architecture of tuple auth system
+end title
+
+component engine
+component watcher
+component indexer
+
+interface "read\nwrite\ncheck\nwatch\nexpand" as eng_ops
+
+engine -- eng_ops
+
+package store {
+  database "tuple \ncluster"    as db_tuples
+  database "namespace \nconfig" as db_config
+  database "shard map"          as db_shard
+  database "index"              as db_index
+}
+
+' namespace stuff
+
+interface tail as config_tail
+db_config -d-  config_tail
+engine    -u-( config_tail
+
+interface read as config_read
+db_config -d-  config_read
+engine    -u-( config_read
+note right of config_read
+(in)zookie is upper
+bound for config
+
+may require read
+end note
+
+' shard map for routing
+
+interface tail as db_shard_tail
+db_shard -d-  db_shard_tail
+engine   -u-( db_shard_tail
+
+' indexing stuff
+
+interface tail as watcher_tail
+watcher -d-  watcher_tail
+indexer -u-( watcher_tail
+
+interface tail as db_tuples_tail
+db_tuples -u-  db_tuples_tail
+watcher   -d-( db_tuples_tail
+
+interface manage as manage_index
+db_index -u-  manage_index
+indexer  -d-( manage_index
+
+interface read as index_read
+db_index  -d-  index_read
+engine    -u-( index_read
+
+note right of index_read
+for optimized
+check and expand
+requests
+end note
+
+' tuple stuff
+
+interface read as tuple_read
+db_tuples -d-  tuple_read
+engine    -u-( tuple_read
+note left of tuple_read
+(in)zookie
+lower bound
+end note
+
+interface write  as tuple_write
+db_tuples -d-  tuple_write
+engine    -u-( tuple_write
+
+' managment interfaces outside scope
+
+interface manage as shard_manage
+db_shard -u- shard_manage
+note left of shard_manage
+used by
+external
+system
+end note
+
+interface manage as config_manage
+db_config -u- config_manage
+note right of config_manage
+used by
+external
+system
+end note
+
+@enduml
